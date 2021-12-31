@@ -1,6 +1,8 @@
 version: '3'
  
 services:
+
+# WEBサーバー
   nginx:
     image: nginx:latest
     container_name: nginx
@@ -13,6 +15,7 @@ services:
     networks:
       - fastapi-net
 
+# バックエンド
   app:
     container_name: FastAPI
     build: ./docker
@@ -27,6 +30,7 @@ services:
     networks: 
       - fastapi-net
 
+# DBサーバー
   postgres:
     image: postgres:13.5
     container_name: PostgreSQL
