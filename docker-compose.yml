@@ -1,0 +1,54 @@
+version: '3'
+ 
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - fastapi-net
+
+  app:
+    container_name: FastAPI
+    build: ./docker
+    env_file: .env
+    volumes:
+      - ./sql_app:/var/www/html/sql_app
+    ports:
+      - "8000:8000"
+    command: uvicorn sql_app.main:app --reload --host 0.0.0.0 --port 8000
+    depends_on:
+      - postgres
+    networks: 
+      - fastapi-net
+
+  postgres:
+    image: postgres:13.5
+    container_name: PostgreSQL
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+      TZ: "Asia/Tokyo"
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgres/init:/docker-entrypoint-initdb.d
+    hostname: postgres
+    restart: always
+    user: root
+    networks:
+    - fastapi-net
+
+volumes:
+  postgres:
+
+networks:
+  fastapi-net:
+    driver: bridge
